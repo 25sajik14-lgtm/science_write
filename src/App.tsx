@@ -113,7 +113,7 @@ const DrawingCanvas = ({
 
   return (
     <div className="flex flex-col w-full h-full">
-      <div className="border-2 border-slate-500 rounded-lg overflow-hidden bg-white flex flex-col h-64 relative group">
+      <div className="border-2 border-slate-500 rounded-lg overflow-hidden bg-white flex flex-col aspect-square relative group">
         <div className="bg-slate-700 text-white text-xs font-bold px-3 py-1 self-start m-2 rounded-sm z-10 shadow-sm">
           {label}
         </div>
@@ -546,7 +546,7 @@ export default function App() {
           <p className="text-sm font-bold text-indigo-600 mb-6 flex items-center gap-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
             <span className="text-lg">※</span> 주의! 온도가 변해도 입자의 크기는 변하지 않아요. 빠르기는 화살표로 표현하세요!
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {['1컷: 평온한 상태', '2컷: 온도 변화 발생', '3컷: 하이라이트!', '4컷: 결과 및 마무리'].map((label, idx) => (
               <DrawingCanvas 
                 key={idx}
