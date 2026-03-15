@@ -69,8 +69,8 @@ service cloud.firestore {
     function isValidWorksheet(data) {
       return hasRequiredFields(['grade', 'classNumber', 'studentNumber', 'studentName', 'authorUid', 'createdAt']) &&
              data.grade is number && data.grade == 1 &&
-             data.classNumber is number && data.classNumber >= 1 && data.classNumber <= 11 &&
-             data.studentNumber is number && data.studentNumber > 0 && data.studentNumber < 100 &&
+             data.classNumber is number && data.classNumber >= 0 && data.classNumber <= 100 &&
+             data.studentNumber is number && data.studentNumber >= 0 && data.studentNumber <= 100 &&
              data.studentName is string && data.studentName.size() > 0 && data.studentName.size() < 50 &&
              data.authorUid is string && data.authorUid.size() > 0 && data.authorUid.size() < 100 &&
              data.createdAt is timestamp &&
@@ -96,42 +96,34 @@ service cloud.firestore {
     }
 
     match /worksheets/{worksheetId} {
-      // Anyone authenticated can read
-      allow read: if isAuthenticated();
+      // Anyone can read
+      allow read: if true;
       
-      // Only authenticated users can create, must set their own uid
-      allow create: if isAuthenticated() && 
-                    isValidWorksheet(request.resource.data) && 
-                    uidUnchanged();
+      // Anyone can create (validation ensures schema is correct)
+      allow create: if isValidWorksheet(request.resource.data);
                     
-      // Anyone authenticated can update (allows teachers to edit student info)
-      allow update: if isAuthenticated() && 
-                    isValidWorksheet(request.resource.data) && 
-                    uidNotModified() &&
+      // Anyone can update (allows teachers to edit student info)
+      allow update: if isValidWorksheet(request.resource.data) && 
                     request.resource.data.createdAt == resource.data.createdAt;
                     
-      // Anyone authenticated can delete
-      allow delete: if isAuthenticated();
+      // Anyone can delete
+      allow delete: if true;
     }
 
     match /feedbacks/{feedbackId} {
-      // Anyone authenticated can read
-      allow read: if isAuthenticated();
+      // Anyone can read
+      allow read: if true;
       
-      // Only authenticated users can create, must set their own uid
-      allow create: if isAuthenticated() && 
-                    isValidFeedback(request.resource.data) && 
-                    uidUnchanged();
+      // Anyone can create
+      allow create: if isValidFeedback(request.resource.data);
                     
-      // Anyone authenticated can update
-      allow update: if isAuthenticated() && 
-                    isValidFeedback(request.resource.data) && 
-                    uidNotModified() &&
+      // Anyone can update
+      allow update: if isValidFeedback(request.resource.data) && 
                     request.resource.data.createdAt == resource.data.createdAt &&
                     request.resource.data.worksheetId == resource.data.worksheetId;
                     
-      // Anyone authenticated can delete
-      allow delete: if isAuthenticated();
+      // Anyone can delete
+      allow delete: if true;
     }
   }
 }

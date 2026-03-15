@@ -5,8 +5,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { Search, BookOpen, Zap, Lightbulb, Pin, Printer, Send, Users, ArrowLeft, LogIn, LogOut, MessageSquare, ShieldCheck, Award, UserCircle, Edit2 } from 'lucide-react';
-import { auth, db, signInAnon } from './firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { db } from './firebase';
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, where, updateDoc, doc } from 'firebase/firestore';
 
 const DrawingCanvas = ({ 
@@ -157,9 +156,9 @@ const DrawingCanvas = ({
 };
 
 export default function App() {
-  const [user, setUser] = useState<User | null>(null);
   const [view, setView] = useState<'write' | 'board' | 'detail' | 'teacher'>('write');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [localUid, setLocalUid] = useState<string>('');
   
   // Student Info State
   const [myInfo, setMyInfo] = useState({ classNumber: '', studentNumber: '', studentName: '' });
@@ -202,7 +201,13 @@ export default function App() {
   const [allFeedbacks, setAllFeedbacks] = useState<any[]>([]);
 
   useEffect(() => {
-    signInAnon();
+    let uid = localStorage.getItem('studentUid');
+    if (!uid) {
+      uid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('studentUid', uid);
+    }
+    setLocalUid(uid);
+
     const saved = localStorage.getItem('studentInfo');
     if (saved) {
       try {
@@ -216,11 +221,6 @@ export default function App() {
         }));
       } catch(e) {}
     }
-
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    return () => unsubscribe();
   }, []);
 
   const fetchSubmissions = async () => {
@@ -292,13 +292,25 @@ export default function App() {
     try {
       const drawings = [0, 1, 2, 3].map(i => {
         const canvas = document.getElementById(`canvas-${i}`) as HTMLCanvasElement;
-        return canvas ? canvas.toDataURL('image/png') : '';
+        if (!canvas) return '';
+        
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = canvas.height;
+        const ctx = tempCanvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+          ctx.drawImage(canvas, 0, 0);
+          return tempCanvas.toDataURL('image/jpeg', 0.6);
+        }
+        return canvas.toDataURL('image/png');
       });
 
       await addDoc(collection(db, 'worksheets'), {
         grade: 1,
-        classNumber: parseInt(formData.classNumber),
-        studentNumber: parseInt(formData.studentNumber),
+        classNumber: parseInt(formData.classNumber) || 0,
+        studentNumber: parseInt(formData.studentNumber) || 0,
         studentName: formData.studentName,
         characterName: formData.characterName,
         characterTraits: formData.characterTraits,
@@ -311,7 +323,7 @@ export default function App() {
         drawings,
         captions,
         createdAt: serverTimestamp(),
-        authorUid: user?.uid || 'anonymous'
+        authorUid: localUid
       });
 
       alert("성공적으로 제출되었습니다!");
@@ -337,7 +349,7 @@ export default function App() {
     try {
       await addDoc(collection(db, 'feedbacks'), {
         worksheetId: selectedSubmission.id,
-        authorUid: user?.uid || 'anonymous',
+        authorUid: localUid,
         authorName: `${myInfo.classNumber}반 ${myInfo.studentName}`,
         content: newFeedback.trim(),
         createdAt: serverTimestamp()
@@ -670,8 +682,8 @@ export default function App() {
               <button onClick={async () => {
                 try {
                   await updateDoc(doc(db, 'worksheets', editingStudent.id), {
-                    classNumber: parseInt(editFormData.classNumber),
-                    studentNumber: parseInt(editFormData.studentNumber),
+                    classNumber: parseInt(editFormData.classNumber) || 0,
+                    studentNumber: parseInt(editFormData.studentNumber) || 0,
                     studentName: editFormData.studentName
                   });
                   setEditingStudent(null);
