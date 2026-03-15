@@ -259,6 +259,7 @@ export default function App() {
   useEffect(() => {
     if (view === 'board') {
       fetchSubmissions();
+      fetchAllFeedbacks();
     } else if (view === 'teacher') {
       fetchSubmissions();
       fetchAllFeedbacks();
@@ -350,7 +351,7 @@ export default function App() {
       await addDoc(collection(db, 'feedbacks'), {
         worksheetId: selectedSubmission.id,
         authorUid: localUid,
-        authorName: `${myInfo.classNumber}반 ${myInfo.studentName}`,
+        authorName: `${myInfo.classNumber}반 ${myInfo.studentNumber}번 ${myInfo.studentName}`,
         content: newFeedback.trim(),
         createdAt: serverTimestamp()
       });
@@ -850,9 +851,14 @@ export default function App() {
                   </p>
                   <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-100">
                     <span className="font-bold text-slate-700">{sub.studentName}</span>
-                    <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">
-                      캐릭터: {sub.characterName || '이름 없음'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                        캐릭터: {sub.characterName || '이름 없음'}
+                      </span>
+                      <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded flex items-center gap-1">
+                        <MessageSquare className="w-3 h-3" /> {allFeedbacks.filter(fb => fb.worksheetId === sub.id).length}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -899,8 +905,9 @@ export default function App() {
                       <th className="p-4 font-bold text-slate-700">번호</th>
                       <th className="p-4 font-bold text-slate-700">이름</th>
                       <th className="p-4 font-bold text-slate-700">제출 여부</th>
-                      <th className="p-4 font-bold text-slate-700">작성한 피드백 수</th>
-                      <th className="p-4 font-bold text-slate-700">우수 피드백</th>
+                      <th className="p-4 font-bold text-slate-700">받은 댓글 수</th>
+                      <th className="p-4 font-bold text-slate-700">작성한 댓글 수</th>
+                      <th className="p-4 font-bold text-slate-700">댓글 단 게시물</th>
                       <th className="p-4 font-bold text-slate-700">관리</th>
                     </tr>
                   </thead>
@@ -912,9 +919,21 @@ export default function App() {
                         return a.studentNumber - b.studentNumber;
                       })
                       .map((sub) => {
+                        // Count feedbacks received on this post
+                        const receivedCount = allFeedbacks.filter(fb => fb.worksheetId === sub.id).length;
+                        
                         // Count feedbacks given by this student (using authorUid)
-                        const feedbackCount = allFeedbacks.filter(fb => fb.authorUid === sub.authorUid).length;
-                        const isExcellent = feedbackCount >= 3;
+                        const userFeedbacks = allFeedbacks.filter(fb => fb.authorUid === sub.authorUid);
+                        const feedbackCount = userFeedbacks.length;
+                        
+                        // Get unique student numbers of the posts they commented on
+                        const commentedPosts = Array.from(new Set(userFeedbacks.map(fb => {
+                          const ws = submissions.find(s => s.id === fb.worksheetId);
+                          return ws ? `${ws.classNumber}-${ws.studentNumber}` : null;
+                        }).filter(Boolean))).map(id => {
+                          const [c, s] = (id as string).split('-');
+                          return `${c}반 ${s}번`;
+                        }).join(', ');
 
                         return (
                           <tr key={sub.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
@@ -924,13 +943,10 @@ export default function App() {
                             <td className="p-4">
                               <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2 py-1 rounded">제출 완료</span>
                             </td>
-                            <td className="p-4 font-medium text-slate-600">{feedbackCount}개</td>
-                            <td className="p-4">
-                              {isExcellent && (
-                                <span className="flex items-center gap-1 text-amber-500 font-bold text-sm">
-                                  <Award className="w-4 h-4" /> 우수
-                                </span>
-                              )}
+                            <td className="p-4 font-medium text-indigo-600">{receivedCount}개</td>
+                            <td className="p-4 font-medium text-emerald-600">{feedbackCount}번</td>
+                            <td className="p-4 text-sm text-slate-500 max-w-xs truncate" title={commentedPosts}>
+                              {commentedPosts || '-'}
                             </td>
                             <td className="p-4">
                               <button 
