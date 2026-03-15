@@ -4,9 +4,9 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, BookOpen, Zap, Lightbulb, Pin, Printer, Send, Users, ArrowLeft, LogIn, LogOut, MessageSquare, ShieldCheck, Award, UserCircle, Edit2 } from 'lucide-react';
+import { Search, BookOpen, Zap, Lightbulb, Pin, Printer, Send, Users, ArrowLeft, LogIn, LogOut, MessageSquare, ShieldCheck, Award, UserCircle, Edit2, Trash2 } from 'lucide-react';
 import { db } from './firebase';
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, where, updateDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
 const DrawingCanvas = ({ 
   label, 
@@ -169,6 +169,7 @@ export default function App() {
   const [showTeacherLogin, setShowTeacherLogin] = useState(false);
   const [teacherPassword, setTeacherPassword] = useState('');
   const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [deletingSubmission, setDeletingSubmission] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({ classNumber: '', studentNumber: '', studentName: '' });
 
   // Form State
@@ -374,6 +375,20 @@ export default function App() {
       setView('teacher');
     } else {
       alert('비밀번호가 틀렸습니다.');
+    }
+  };
+
+  const handleDeleteSubmission = async () => {
+    if (!deletingSubmission) return;
+    try {
+      await deleteDoc(doc(db, 'worksheets', deletingSubmission.id));
+      setDeletingSubmission(null);
+      fetchSubmissions();
+      if (view === 'detail' && selectedSubmission?.id === deletingSubmission.id) {
+        setView('board');
+      }
+    } catch (error) {
+      console.error("Error deleting submission: ", error);
     }
   };
 
@@ -699,6 +714,25 @@ export default function App() {
         </div>
       )}
 
+      {/* Teacher Delete Modal */}
+      {deletingSubmission && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100]">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+            <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+              <Trash2 className="w-6 h-6 text-rose-600" /> 게시물 삭제
+            </h3>
+            <p className="text-slate-600 mb-6 font-medium">
+              {deletingSubmission.classNumber}반 {deletingSubmission.studentNumber}번 {deletingSubmission.studentName} 학생의 작품을 정말 삭제하시겠습니까?<br/>
+              <span className="text-sm text-rose-500 mt-2 block">이 작업은 되돌릴 수 없습니다.</span>
+            </p>
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setDeletingSubmission(null)} className="px-4 py-2 rounded-lg font-bold text-slate-500 hover:bg-slate-100">취소</button>
+              <button onClick={handleDeleteSubmission} className="px-4 py-2 rounded-lg font-bold bg-rose-600 text-white hover:bg-rose-700">삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Teacher Login Modal */}
       {showTeacherLogin && (
         <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center z-[100]">
@@ -741,13 +775,21 @@ export default function App() {
         
         {view === 'detail' && selectedSubmission && (
           <div className="max-w-7xl mx-auto">
-            <div className="mb-6 print:hidden">
+            <div className="mb-6 flex justify-between items-center print:hidden">
               <button 
                 onClick={() => setView('board')}
                 className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition-colors"
               >
                 <ArrowLeft className="w-5 h-5" /> 게시판으로 돌아가기
               </button>
+              {isTeacher && (
+                <button 
+                  onClick={() => setDeletingSubmission(selectedSubmission)}
+                  className="flex items-center gap-2 text-rose-600 hover:text-rose-800 font-bold transition-colors bg-rose-50 px-4 py-2 rounded-full"
+                >
+                  <Trash2 className="w-5 h-5" /> 게시물 삭제
+                </button>
+              )}
             </div>
             
             <div className="flex flex-col xl:flex-row gap-8 items-start">
@@ -949,15 +991,23 @@ export default function App() {
                               {commentedPosts || '-'}
                             </td>
                             <td className="p-4">
-                              <button 
-                                onClick={() => {
-                                  setEditingStudent(sub);
-                                  setEditFormData({ classNumber: sub.classNumber, studentNumber: sub.studentNumber, studentName: sub.studentName });
-                                }}
-                                className="text-indigo-600 hover:text-indigo-800 font-bold text-sm flex items-center gap-1"
-                              >
-                                <Edit2 className="w-4 h-4" /> 수정
-                              </button>
+                              <div className="flex items-center gap-3">
+                                <button 
+                                  onClick={() => {
+                                    setEditingStudent(sub);
+                                    setEditFormData({ classNumber: sub.classNumber, studentNumber: sub.studentNumber, studentName: sub.studentName });
+                                  }}
+                                  className="text-indigo-600 hover:text-indigo-800 font-bold text-sm flex items-center gap-1"
+                                >
+                                  <Edit2 className="w-4 h-4" /> 수정
+                                </button>
+                                <button 
+                                  onClick={() => setDeletingSubmission(sub)}
+                                  className="text-rose-600 hover:text-rose-800 font-bold text-sm flex items-center gap-1"
+                                >
+                                  <Trash2 className="w-4 h-4" /> 삭제
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
