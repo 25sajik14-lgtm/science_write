@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, BookOpen, Zap, Lightbulb, Pin, Printer, Send, Users, ArrowLeft, LogIn, LogOut, MessageSquare, ShieldCheck, Award, UserCircle, Edit2, Trash2 } from 'lucide-react';
+import { Search, BookOpen, Zap, Lightbulb, Pin, Printer, Send, Users, ArrowLeft, LogIn, LogOut, MessageSquare, ShieldCheck, Award, UserCircle, Edit2, Trash2, HelpCircle, X } from 'lucide-react';
 import { db } from './firebase';
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, where, updateDoc, doc, deleteDoc } from 'firebase/firestore';
 
@@ -163,6 +163,7 @@ export default function App() {
   // Student Info State
   const [myInfo, setMyInfo] = useState({ classNumber: '', studentNumber: '', studentName: '' });
   const [showInfoModal, setShowInfoModal] = useState(false);
+  const [showExampleModal, setShowExampleModal] = useState(false);
 
   // Teacher Mode State
   const [isTeacher, setIsTeacher] = useState(false);
@@ -615,6 +616,12 @@ export default function App() {
             작성하기
           </button>
           <button 
+            onClick={() => setShowExampleModal(true)}
+            className={`font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 bg-emerald-50/50 border border-emerald-200`}
+          >
+            <HelpCircle className="w-4 h-4" /> 예시 보기
+          </button>
+          <button 
             onClick={() => setView('board')}
             className={`font-bold px-4 py-2 rounded-full transition-colors flex items-center gap-2 ${view === 'board' || view === 'detail' ? 'bg-indigo-100 text-indigo-700' : 'text-slate-500 hover:bg-slate-100'}`}
           >
@@ -728,6 +735,228 @@ export default function App() {
             <div className="flex justify-end gap-2">
               <button onClick={() => setDeletingSubmission(null)} className="px-4 py-2 rounded-lg font-bold text-slate-500 hover:bg-slate-100">취소</button>
               <button onClick={handleDeleteSubmission} className="px-4 py-2 rounded-lg font-bold bg-rose-600 text-white hover:bg-rose-700">삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Example Modal */}
+      {showExampleModal && (
+        <div className="fixed inset-0 bg-slate-900/60 flex items-center justify-center z-[100] p-4 overflow-y-auto">
+          <div className="bg-[#f5f7f5] rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="bg-[#2d5a3c] text-white p-6 flex justify-between items-start shrink-0 relative overflow-hidden">
+              <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl"></div>
+              <div className="relative z-10">
+                <span className="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-3 border border-white/30">
+                  예시 답안 — 학생 참고용
+                </span>
+                <h2 className="text-3xl font-black mb-2 tracking-tight">나도 이제 입자!<br/>온도에 따른 나의 우당탕탕 하루 스토리보드</h2>
+                <p className="text-emerald-100 font-medium">아래 예시를 참고하여 자신만의 입자 이야기를 만들어 보세요.</p>
+                <div className="flex gap-2 mt-4 text-xs font-bold">
+                  <span className="border border-white/40 px-3 py-1 rounded-full">중학교 1학년</span>
+                  <span className="border border-white/40 px-3 py-1 rounded-full">과학 — 입자와 온도</span>
+                  <span className="border border-white/40 px-3 py-1 rounded-full">사용 개념: 온도↑ → 입자 움직임↑</span>
+                </div>
+              </div>
+              <button onClick={() => setShowExampleModal(false)} className="text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-colors relative z-10">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
+              <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl text-sm text-amber-900 font-medium">
+                <span className="font-bold text-amber-700">이 예시에서 사용한 과학 개념:</span> 온도가 높을수록 입자가 빠르게 움직이고, 온도가 낮을수록 입자가 느리게 움직인다.<br/>
+                <span className="text-amber-700/70 text-xs mt-1 block">※ 열에너지, 열팽창, 운동 에너지 같은 표현은 아직 배우지 않았으므로 사용하지 않았습니다.</span>
+              </div>
+
+              {/* Section 1 */}
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-[#2d5a3c] flex items-center gap-2 mb-4">
+                  <span className="bg-[#2d5a3c] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">1</span> 나의 입자 캐릭터
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 mb-2 block">이름</label>
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg font-bold text-slate-800">콜콜이</div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-400 mb-2 block">성격 및 특징 (예: 추위를 많이 탄다, 에너지가 넘친다)</label>
+                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg text-slate-700 text-sm leading-relaxed">
+                      추울 때는 느릿느릿 조용한 편이다. 그런데 따뜻해지면 갑자기 활발해지면서 가만히 있지를 못한다. 주변 친구들과 자꾸 부딪히는 게 특기다.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 2 */}
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-[#2d5a3c] flex items-center gap-2 mb-4">
+                  <span className="bg-[#2d5a3c] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">2</span> 이야기의 시작 사건
+                </h3>
+                <p className="text-sm text-slate-500 mb-4 font-medium">주인공이 처음 겪은 온도 변화 상황을 하나 고르세요.</p>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 text-slate-800 font-bold bg-emerald-50 p-3 rounded-lg border border-emerald-200">
+                    <div className="w-5 h-5 bg-[#2d5a3c] rounded flex items-center justify-center text-white text-xs">✓</div>
+                    차가운 냉장고 속에 있던 캔이 따뜻한 방으로 나왔다!
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-400 font-medium p-3">
+                    <div className="w-5 h-5 border-2 border-slate-300 rounded"></div>
+                    따뜻한 방에 있던 풍선이 눈 내리는 밖으로 나갔다!
+                  </div>
+                  <div className="flex items-center gap-3 text-slate-400 font-medium p-3">
+                    <div className="w-5 h-5 border-2 border-slate-300 rounded"></div>
+                    그늘에 있던 나에게 갑자기 뜨거운 햇빛이 비친다!
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 3 */}
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-[#2d5a3c] flex items-center gap-2 mb-4">
+                  <span className="bg-[#2d5a3c] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">3</span> 이야기 전개 (소설 요약)
+                </h3>
+                <div className="mb-6">
+                  <label className="text-xs font-bold text-slate-400 mb-2 block">제목</label>
+                  <div className="bg-slate-50 border border-slate-200 p-4 rounded-lg font-bold text-slate-800 text-lg">
+                    콜콜이, 냉장고 밖 세상에서 눈을 뜨다
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  <div>
+                    <label className="text-sm font-bold text-rose-600 mb-2 flex items-center gap-1"><Zap className="w-4 h-4" /> 갈등 상황 (문제 발생!)</label>
+                    <div className="bg-rose-50 border border-rose-100 p-5 rounded-xl text-slate-700 text-sm leading-relaxed h-full">
+                      나 콜콜이는 차가운 냉장고 안에서 오랫동안 살았다. 안은 항상 시원해서 나는 천천히, 조용히 움직이며 친구들과 가까이 붙어 지냈다.<br/><br/>
+                      그런데 오늘 갑자기 누군가가 캔을 꺼내더니 따뜻한 방 안에 두고 가 버렸다. 그 순간부터 나는 몸을 멈출 수가 없었다! 자꾸 빨라지는 느낌이고, 친구들이랑 부딪히고, 뭔가 이상한 하루가 시작됐다.
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-bold text-amber-600 mb-2 flex items-center gap-1"><Lightbulb className="w-4 h-4" /> 해결 및 과학 원리</label>
+                    <div className="bg-amber-50 border border-amber-100 p-5 rounded-xl text-slate-700 text-sm leading-relaxed h-full">
+                      방 안의 온도가 냉장고보다 훨씬 높았기 때문이다. 온도가 높아지면 입자는 더 빠르게 움직인다. 그래서 나(콜콜이)도 점점 빠르게 움직이게 된 것이다.<br/><br/>
+                      반대로 냉장고 안처럼 온도가 낮으면 입자는 천천히 움직인다. 결국 오늘 내가 갑자기 활발해진 건 내 성격이 바뀐 게 아니라, 온도가 올라갔기 때문이었다!
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl">
+                  <label className="text-xs font-bold text-emerald-700 mb-1 block">사용한 과학 원리 한 줄 요약</label>
+                  <div className="font-bold text-slate-800">온도가 높아지면 입자가 빠르게 움직이고, 온도가 낮아지면 입자가 느리게 움직인다.</div>
+                </div>
+              </div>
+
+              {/* Section 4 */}
+              <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-[#2d5a3c] flex items-center gap-2 mb-4">
+                  <span className="bg-[#2d5a3c] text-white w-6 h-6 rounded-full flex items-center justify-center text-sm">4</span> 핵심 장면 네 컷 만화
+                </h3>
+                <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl mb-6 text-sm text-slate-600 font-medium">
+                  <span className="font-bold text-indigo-600">주의:</span> 입자는 온도가 변해도 크기는 변하지 않아요. 빠르기는 화살표로 표현하세요!<br/>
+                  아래 예시는 입자(동그라미)의 <span className="font-bold text-slate-800">위치와 간격</span>으로 움직임의 변화를 나타낸 것입니다.
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {/* Cut 1 */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-white">
+                    <div className="bg-blue-100 text-blue-800 font-bold text-center py-2 text-sm border-b border-blue-200">1컷 - 평온한 상태</div>
+                    <div className="aspect-square relative flex items-center justify-center bg-slate-50">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        <text x="50" y="25" fontSize="6" textAnchor="middle" fill="#64748b" fontWeight="bold">❄️ 냉장고 속</text>
+                        <circle cx="50" cy="55" r="7" fill="#60a5fa" />
+                        <circle cx="35" cy="45" r="7" fill="#60a5fa" />
+                        <circle cx="65" cy="45" r="7" fill="#60a5fa" />
+                        <circle cx="42" cy="70" r="7" fill="#60a5fa" />
+                        <circle cx="58" cy="70" r="7" fill="#60a5fa" />
+                        <text x="50" y="90" fontSize="6" textAnchor="middle" fill="#64748b" fontWeight="bold">느릿느릿...</text>
+                      </svg>
+                    </div>
+                    <div className="p-3 text-xs text-slate-600 text-center border-t border-slate-100 h-20 flex items-center justify-center">
+                      차가운 냉장고 안. 콜콜이는 천천히 조용히 친구들과 모여 있다.
+                    </div>
+                  </div>
+
+                  {/* Cut 2 */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-white">
+                    <div className="bg-amber-100 text-amber-800 font-bold text-center py-2 text-sm border-b border-amber-200">2컷 - 온도 변화 발생</div>
+                    <div className="aspect-square relative flex items-center justify-center bg-slate-50">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        <text x="50" y="20" fontSize="6" textAnchor="middle" fill="#d97706" fontWeight="bold">따뜻한 방으로!</text>
+                        {/* Particles slightly apart with small arrows */}
+                        <g stroke="#d97706" strokeWidth="1" strokeLinecap="round">
+                          <line x1="50" y1="45" x2="50" y2="35" />
+                          <polygon points="50,33 48,37 52,37" fill="#d97706" stroke="none" />
+                          <circle cx="50" cy="50" r="7" fill="#fbbf24" stroke="none" />
+                          
+                          <line x1="25" y1="45" x2="20" y2="38" />
+                          <polygon points="19,36 23,39 18,41" fill="#d97706" stroke="none" />
+                          <circle cx="30" cy="50" r="7" fill="#fbbf24" stroke="none" />
+                          
+                          <line x1="75" y1="45" x2="80" y2="38" />
+                          <polygon points="81,36 82,41 77,39" fill="#d97706" stroke="none" />
+                          <circle cx="70" cy="50" r="7" fill="#fbbf24" stroke="none" />
+                          
+                          <circle cx="40" cy="70" r="7" fill="#fbbf24" stroke="none" />
+                          <circle cx="60" cy="70" r="7" fill="#fbbf24" stroke="none" />
+                        </g>
+                        <text x="50" y="90" fontSize="6" textAnchor="middle" fill="#d97706" fontWeight="bold">점점 빨라지는 중!</text>
+                      </svg>
+                    </div>
+                    <div className="p-3 text-xs text-slate-600 text-center border-t border-slate-100 h-20 flex items-center justify-center">
+                      캔이 방 안으로 나왔다. 온도가 올라가며 콜콜이가 빨라지기 시작한다.
+                    </div>
+                  </div>
+
+                  {/* Cut 3 */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-white">
+                    <div className="bg-rose-100 text-rose-800 font-bold text-center py-2 text-sm border-b border-rose-200">3컷 - 하이라이트!</div>
+                    <div className="aspect-square relative flex items-center justify-center bg-slate-50">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        {/* Particles far apart with long arrows colliding */}
+                        <g stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round">
+                          <line x1="50" y1="60" x2="50" y2="25" />
+                          <polygon points="50,22 47,28 53,28" fill="#e11d48" stroke="none" />
+                          <circle cx="50" cy="65" r="7" fill="#f43f5e" stroke="none" />
+                          
+                          <line x1="25" y1="35" x2="40" y2="50" />
+                          <polygon points="42,52 37,50 41,47" fill="#e11d48" stroke="none" />
+                          <circle cx="20" cy="30" r="7" fill="#f43f5e" stroke="none" />
+                          
+                          <line x1="75" y1="35" x2="60" y2="50" />
+                          <polygon points="58,52 59,47 63,50" fill="#e11d48" stroke="none" />
+                          <circle cx="80" cy="30" r="7" fill="#f43f5e" stroke="none" />
+                          
+                          <circle cx="30" cy="80" r="7" fill="#f43f5e" stroke="none" />
+                          <circle cx="70" cy="80" r="7" fill="#f43f5e" stroke="none" />
+                        </g>
+                        <text x="50" y="90" fontSize="6" textAnchor="middle" fill="#e11d48" fontWeight="bold">빠르게 부딪힌다!</text>
+                      </svg>
+                    </div>
+                    <div className="p-3 text-xs text-slate-600 text-center border-t border-slate-100 h-20 flex items-center justify-center">
+                      온도가 높아져 콜콜이가 엄청 빠르게 움직인다. 친구들과 마구 부딪힌다!
+                    </div>
+                  </div>
+
+                  {/* Cut 4 */}
+                  <div className="border border-slate-200 rounded-xl overflow-hidden flex flex-col bg-white">
+                    <div className="bg-emerald-100 text-emerald-800 font-bold text-center py-2 text-sm border-b border-emerald-200">4컷 - 결과 및 마무리</div>
+                    <div className="aspect-square relative flex items-center justify-center bg-slate-50">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        <text x="50" y="45" fontSize="7" textAnchor="middle" fill="#059669" fontWeight="bold">온도 높음</text>
+                        <text x="50" y="55" fontSize="7" textAnchor="middle" fill="#059669" fontWeight="bold">→ 빠른 움직임!</text>
+                        
+                        <circle cx="50" cy="20" r="7" fill="#10b981" />
+                        <circle cx="20" cy="40" r="7" fill="#10b981" />
+                        <circle cx="80" cy="40" r="7" fill="#10b981" />
+                        <circle cx="30" cy="80" r="7" fill="#10b981" />
+                        <circle cx="70" cy="80" r="7" fill="#10b981" />
+                        
+                        <text x="50" y="95" fontSize="6" textAnchor="middle" fill="#059669" fontWeight="bold">오늘의 깨달음!</text>
+                      </svg>
+                    </div>
+                    <div className="p-3 text-xs text-slate-600 text-center border-t border-slate-100 h-20 flex items-center justify-center">
+                      오늘의 깨달음: 내가 활발해진 건 온도가 높아졌기 때문이었다!
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
